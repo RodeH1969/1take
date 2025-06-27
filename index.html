@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>1 Take</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+    #countdown.initial {
+      font-size: 2rem;
+      color: #ffd700;
+    }
+    #countdown.action {
+      font-size: 5rem;
+      color: #ff4500;
+      animation: pulse 0.5s infinite alternate;
+    }
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.1); }
+    }
+    #timer {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 2rem;
+      font-weight: 900;
+      color: #ff4500;
+      text-shadow: 1px 1px 0 #000;
+      z-index: 30 !important;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 5px 10px;
+      border-radius: 5px;
+      visibility: hidden;
+    }
+    #countdown {
+      z-index: 25 !important;
+      background: rgba(0, 0, 0, 0.8) !important;
+      color: #ffffff !important;
+      visibility: hidden;
+      font-size: 2rem;
+      line-height: 1.2;
+      text-align: center;
+    }
+    #message {
+      z-index: 50 !important;
+      background: rgba(0, 0, 0, 0.9) !important;
+      color: #ffffff !important;
+      visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 1.5rem;
+      padding: 20px;
+    }
+    #video {
+      z-index: 10;
+      object-fit: contain;
+      width: 100%;
+      height: 100%;
+    }
+    #defaultGif {
+      z-index: 15;
+    }
+    .video-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background-color: #000000 !important;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+    <!-- Video/Image Capture Area -->
+    <div class="relative mb-4 h-64 video-container">
+      <video id="video" class="w-full h-full bg-black rounded-lg" muted playsinline></video>
+      <img id="defaultGif" src="/static/1take.gif" class="w-full h-full object-contain bg-black rounded-lg absolute inset-0" alt="1 Take Default" />
+      <div id="countdown" class="absolute inset-0 flex items-center justify-center text-white font-bold hidden"></div>
+      <div id="message" class="absolute inset-0 flex items-center justify-center text-white text-2xl font-bold bg-black bg-opacity-50 hidden"></div>
+      <div id="timer"></div>
+    </div>
+
+    <!-- Record Button -->
+    <button id="recordButton" class="w-1/2 bg-orange-500 text-black py-2 rounded-lg hover:bg-orange-600 font-extrabold mx-auto block">
+      Record your 1take
+    </button>
+    <p class="text-center text-xs mt-2">(you agree to your 1take being shown on 1take TikTok)</p>
+  </div>
+
+  <!-- Best do of Donald Trump  -->
+  <div class="mt-8 w-full max-w-md text-center">
+    <h2 class="text-lg font-bold mb-4">Best do of Donald Trump </h2>
+    <div class="relative w-full max-w-xs mx-auto">
+      <video id="winnerVideo" class="w-full max-w-xs mx-auto block" style="z-index: 10;" controls preload="auto" poster="/static/trump-poster.jpg">
+        <source src="/static/trump.mp4" type="video/mp4">
+        <source src="/static/trump.webm" type="video/webm">
+        Your browser does not support the video tag.
+      </video>
+      <img id="winnerThumbnail" src="/static/trump-thumbnail.jpg" class="w-full max-w-xs mx-auto block absolute inset-0 object-cover" style="z-index: 5;" alt="The best Donald Trump thumbnail" />
+    </div>
+  </div>
+
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyCqEf5MLL8A4aUTALonrlXOytF73J6FclE",
+      authDomain: "take-653e1.firebaseapp.com",
+      projectId: "take-653e1",
+      storageBucket: "take-653e1.firebasestorage.app",
+      messagingSenderId: "996978318172",
+      appId: "1:996978318172:web:c128d1ceea0c704fd67f99",
+      measurementId: "G-TNC7VHBG36"
+    };
+
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+    let userId = null;
+    const subject = "George_W_Bush"; // Administrator-defined subject
+
+    const video = document.getElementById('video');
+    const defaultGif = document.getElementById('defaultGif');
+    const countdown = document.getElementById('countdown');
+    const message = document.getElementById('message');
+    const recordButton = document.getElementById('recordButton');
+    const timer = document.getElementById('timer');
+    let mediaRecorder;
+    let recordedChunks = [];
+
+    // Handle winner video thumbnail
+    const winnerVideo = document.getElementById('winnerVideo');
+    const winnerThumbnail = document.getElementById('winnerThumbnail');
+    winnerVideo.addEventListener('canplay', () => {
+      console.log('Video can play');
+      winnerThumbnail.style.display = 'none';
+    });
+    winnerVideo.load(); // Force video load
+
+    signInAnonymously(auth).then((userCredential) => {
+      userId = userCredential.user.uid;
+      console.log("Firebase auth successful, userId:", userId);
+    }).catch((error) => {
+      console.error("Firebase auth failed:", error);
+    });
+
+    async function startWebcam() {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          navigator.getUserMedia =
+            navigator.getUserMedia ||
+            navigator.webkitGetUserMedia ||
+            navigator.mozGetUserMedia ||
+            navigator.msGetUserMedia;
+          if (navigator.getUserMedia) {
+            return new Promise((resolve, reject) => {
+              navigator.getUserMedia(
+                { video: { facingMode: { exact: "user" }, width: 360, height: 480, aspectRatio: { exact: 0.75 } }, audio: true },
+                (stream) => resolve(stream),
+                (error) => reject(error)
+              );
+            });
+          } else {
+            throw new Error("getUserMedia is not supported in this browser.");
+          }
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: "user" }, width: 360, height: 480, aspectRatio: { exact: 0.75 } },
+          audio: true
+        });
+        video.srcObject = stream;
+        video.classList.remove('hidden');
+        video.play();
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+        mediaRecorder.onstop = uploadVideo;
+      } catch (error) {
+        console.error("Camera access failed:", error);
+        alert(`Failed to access camera: ${error.message}. Please ensure camera permissions are allowed and you're using HTTPS or localhost.`);
+        recordButton.disabled = false;
+        recordButton.textContent = 'Record your 1take';
+        message.textContent = "Camera access failed. Please check permissions or try again.";
+        message.style.visibility = 'visible';
+        setTimeout(() => message.style.visibility = 'hidden', 3000);
+      }
+    }
+
+    async function startCountdown() {
+      const messages = [
+        { text: "You've got 18 seconds", class: 'initial' },
+        { text: "You've got 1 take", class: 'initial' },
+        { text: "Ready", class: 'action' },
+        { text: "Setty", class: 'action' },
+        { text: "Go", class: 'action' }
+      ];
+      defaultGif.style.visibility = 'visible';
+      video.style.visibility = 'visible';
+      video.play();
+      countdown.style.visibility = 'visible';
+      timer.style.visibility = 'visible';
+
+      for (let msg of messages) {
+        countdown.textContent = msg.text;
+        countdown.className = `absolute inset-0 flex items-center justify-center text-white font-bold ${msg.class}`;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      countdown.style.visibility = 'hidden';
+      defaultGif.style.visibility = 'hidden';
+      console.log("Countdown finished, starting recording");
+      await recordVideo();
+    }
+
+    async function recordVideo() {
+      recordedChunks = [];
+      mediaRecorder.start();
+      recordButton.disabled = true;
+      recordButton.textContent = 'Recording...';
+      video.play();
+      startTimer();
+      await new Promise(resolve => setTimeout(resolve, 18000)); // 18 seconds
+      mediaRecorder.stop();
+      timer.style.visibility = 'hidden';
+      // Immediately hide video and show processing message
+      video.style.visibility = 'hidden';
+      message.textContent = "Processing...";
+      message.style.visibility = 'visible';
+      message.style.zIndex = '50';
+      console.log("Recording stopped, showing processing message");
+      // Start upload and show success message concurrently
+      uploadVideo();
+      await showMessage();
+    }
+
+    function startTimer() {
+      let timeLeft = 18; // Matches 18-second recording
+      timer.textContent = timeLeft;
+      const timerInterval = setInterval(() => {
+        timeLeft--;
+        timer.textContent = timeLeft;
+        if (timeLeft <= 0) clearInterval(timerInterval);
+      }, 1000);
+    }
+
+    async function uploadVideo() {
+      console.log("Starting uploadVideo, recordedChunks:", recordedChunks.length);
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      console.log("Blob created, size:", blob.size);
+      const storageRef = ref(storage, `videos/${subject}/${userId}/${Date.now()}.webm`);
+      try {
+        console.log("Uploading to Firebase Storage...");
+        const snapshot = await uploadBytes(storageRef, blob);
+        console.log("Upload successful, getting download URL...");
+        const url = await getDownloadURL(snapshot.ref);
+        console.log("Video uploaded, URL:", url);
+      } catch (error) {
+        console.error("Upload failed:", error);
+        message.textContent = "Upload failed. Please try again.";
+        message.style.visibility = 'visible';
+        console.log("Showing error message due to upload failure");
+        setTimeout(() => {
+          message.style.visibility = 'hidden';
+          console.log("Hiding error message");
+        }, 3000);
+      }
+    }
+
+    async function showMessage() {
+      console.log("Starting showMessage");
+      message.textContent = "Nice! Check on our TikTok channel for semifinalists!";
+      message.style.visibility = 'visible';
+      message.style.zIndex = '50';
+      console.log("Message set to visible, text:", message.textContent);
+      video.style.visibility = 'hidden';
+      defaultGif.style.visibility = 'hidden';
+      console.log("Video and defaultGif hidden");
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        console.log("Video tracks stopped");
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      message.style.visibility = 'hidden';
+      message.style.zIndex = '25';
+      defaultGif.style.visibility = 'visible';
+      video.style.visibility = 'visible';
+      recordButton.disabled = false;
+      recordButton.textContent = 'Record your 1take';
+      countdown.style.visibility = 'hidden';
+      timer.style.visibility = 'hidden';
+      console.log("showMessage completed, UI reset");
+    }
+
+    recordButton.addEventListener('click', async () => {
+      await startWebcam();
+      await startCountdown();
+    });
+  </script>
+</body>
+</html>
