@@ -27,11 +27,25 @@
     .video-container { position: relative; width: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .thumbnail { cursor: pointer; border-radius: 6px; transition: transform 0.2s; }
     .thumbnail:hover { transform: scale(1.05); }
-    .full-screen-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #000; z-index: 1000; display: none; }
+    .full-screen-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #000;
+      z-index: 1000;
+      display: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
     .full-screen-video video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain; /* ✅ fixed to "contain" */
+      width: auto;
+      height: auto;
+      max-width: 100vw;
+      max-height: 100vh;
+      object-fit: contain;
       background: #000;
     }
   </style>
