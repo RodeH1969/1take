@@ -4,109 +4,114 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>1 Take</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet" />
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-    }
-    #countdown.initial {
-      font-size: 2rem;
-      color: #ffd700;
-    }
-    #countdown.action {
-      font-size: 5rem;
-      color: #ff4500;
-      animation: pulse 0.5s infinite alternate;
-    }
-    @keyframes pulse {
-      from { transform: scale(1); }
-      to { transform: scale(1.1); }
-    }
+    body { font-family: 'Poppins', sans-serif; }
+    #countdown.initial { font-size: 2rem; color: #ffd700; }
+    #countdown.action { font-size: 5rem; color: #ff4500; animation: pulse 0.5s infinite alternate; }
+    @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
     #timer {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      font-size: 2rem;
-      font-weight: 900;
-      color: #ff4500;
-      text-shadow: 1px 1px 0 #000;
-      z-index: 30 !important;
-      background: rgba(255, 255, 255, 0.7);
-      padding: 5px 10px;
-      border-radius: 5px;
-      visibility: hidden;
+      position: absolute; top: 10px; left: 10px; font-size: 2rem; font-weight: 900;
+      color: #ff4500; text-shadow: 1px 1px 0 #000; z-index: 30 !important;
+      background: rgba(255,255,255,0.7); padding: 5px 10px; border-radius: 5px; visibility: hidden;
     }
-    #countdown {
-      z-index: 25 !important;
-      background: rgba(0, 0, 0, 0.8) !important;
-      color: #ffffff !important;
-      visibility: hidden;
-      font-size: 2rem;
-      line-height: 1.2;
-      text-align: center;
+    #countdown, #message {
+      z-index: 50 !important; background: rgba(0,0,0,0.8);
+      color: #ffffff; visibility: hidden; display: flex; align-items: center;
+      justify-content: center; text-align: center; font-size: 1.5rem; padding: 20px;
     }
-    #message {
-      z-index: 50 !important;
-      background: rgba(0, 0, 0, 0.9) !important;
-      color: #ffffff !important;
-      visibility: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: 1.5rem;
-      padding: 20px;
-    }
-    #video {
-      z-index: 10;
-      object-fit: contain;
-      width: 100%;
-      height: 100%;
-    }
-    #defaultGif {
-      z-index: 15;
-    }
-    .video-container {
-      position: relative;
-      width: 100%;
-      height: 256px; /* Match original h-64 */
-      background-color: #000000 !important;
-      overflow: hidden;
-    }
+    #video { z-index: 10; object-fit: contain; width: 100%; height: 100%; display: none; }
+    #defaultGif { z-index: 15; }
+    .video-container { position: relative; width: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .thumbnail { cursor: pointer; border-radius: 6px; transition: transform 0.2s; }
+    .thumbnail:hover { transform: scale(1.05); }
+    .full-screen-video { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; z-index: 1000; display: none; }
+    .full-screen-video video { width: 100%; height: 100%; object-fit: contain; }
   </style>
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+
   <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
-    <!-- Video/Image Capture Area -->
     <div class="relative mb-4 h-64 video-container">
       <video id="video" class="w-full h-full bg-black rounded-lg" muted playsinline></video>
-      <img id="defaultGif" src="/static/1take.gif" class="w-full h-full object-contain bg-black rounded-lg absolute inset-0" alt="1 Take Default" />
+      <img id="defaultGif" src="./static/1take.gif" class="w-full h-full object-contain bg-black rounded-lg absolute inset-0" alt="1 Take Default" />
       <div id="countdown" class="absolute inset-0 flex items-center justify-center text-white font-bold hidden"></div>
       <div id="message" class="absolute inset-0 flex items-center justify-center text-white text-2xl font-bold bg-black bg-opacity-50 hidden"></div>
       <div id="timer"></div>
     </div>
-
-    <!-- Record Button -->
-    <button id="recordButton" class="w-1/2 bg-orange-500 text-black py-2 rounded-lg hover:bg-orange-600 font-extrabold mx-auto block">
-      Record your 1take
-    </button>
-    <p class="text-center text-xs mt-2"> You consent to us posting on our TikTok channel</p>
+    <button id="recordButton" class="w-1/2 bg-orange-500 text-black py-2 rounded-lg hover:bg-orange-600 font-extrabold mx-auto block">Record your 1take</button>
+    <p class="text-center text-xs mt-2">You consent to us posting on our TikTok channel</p>
   </div>
 
-  <!-- Video Section -->
-  <div class="mt-8 w-full max-w-md text-center">
-    <div class="relative w-full max-w-xs mx-auto">
-      <video id="winnerVideo" class="w-full max-w-xs mx-auto block" style="z-index: 10;" controls preload="auto" poster="/static/trump-poster.jpg">
-        <source src="/static/trump.mp4" type="video/mp4">
-        <source src="/static/trump.webm" type="video/webm">
-        Your browser does not support the video tag.
-      </video>
-      <img id="winnerThumbnail" src="/static/trump-thumbnail.jpg" class="w-full max-w-xs mx-auto block absolute inset-0 object-cover" style="z-index: 5;" alt="The best Donald Trump thumbnail" />
-    </div>
+  <!-- Grid of GIF thumbnails -->
+  <h2 class="text-xl font-bold mt-10">Hall of Famers</h2>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-6xl px-4">
+    <div class="video-container"><img src="./static/bobbybaccalieri.gif" alt="Bobby Baccalieri" class="thumbnail" data-video="./static/bobbybaccalieri.mp4"></div>
+    <div class="video-container"><img src="./static/brent1.gif" alt="Brent1" class="thumbnail" data-video="./static/brent1.mp4"></div>
+    <div class="video-container"><img src="./static/brent2.gif" alt="Brent2" class="thumbnail" data-video="./static/brent2.mp4"></div>
+    <div class="video-container"><img src="./static/brent3.gif" alt="Brent3" class="thumbnail" data-video="./static/brent3.mp4"></div>
+    <div class="video-container"><img src="./static/dubya1.gif" alt="Dubya1" class="thumbnail" data-video="./static/dubya1.mp4"></div>
+    <div class="video-container"><img src="./static/dubya2.gif" alt="Dubya2" class="thumbnail" data-video="./static/dubya2.mp4"></div>
+    <div class="video-container"><img src="./static/nealpage.gif" alt="Neal Page" class="thumbnail" data-video="./static/nealpage.mp4"></div>
+    <div class="video-container"><img src="./static/nedryerson.gif" alt="Ned Ryerson" class="thumbnail" data-video="./static/nedryerson1.mp4"></div>
+    <div class="video-container"><img src="./static/owenwilson.gif" alt="Owen Wilson" class="thumbnail" data-video="./static/owenwilson.mp4"></div>
+    <div class="video-container"><img src="./static/paulie.gif" alt="Paulie" class="thumbnail" data-video="./static/paulie1.mp4"></div>
+    <div class="video-container"><img src="./static/tonysoprano1.gif" alt="Tony Soprano1" class="thumbnail" data-video="./static/tonysoprano1.mp4"></div>
+    <div class="video-container"><img src="./static/tonysoprano2.gif" alt="Tony Soprano2" class="thumbnail" data-video="./static/tonysoprano2.mp4"></div>
+    <div class="video-container"><img src="./static/tonysoprano3.gif" alt="Tony Soprano3" class="thumbnail" data-video="./static/tonysoprano3.mp4"></div>
+    <div class="video-container"><img src="./static/trump1.gif" alt="Trump1" class="thumbnail" data-video="./static/trump.mp4"></div>
+    <div class="video-container"><img src="./static/trump2.gif" alt="Trump2" class="thumbnail" data-video="./static/trump2.mp4"></div>
+  </div>
+
+  <!-- Modal for full screen video -->
+  <div id="fullScreenContainer" class="full-screen-video">
+    <button id="closeModal" style="position:absolute;top:20px;right:30px;color:white;font-size:3rem;font-weight:bold;background:none;border:none;cursor:pointer;z-index:1001;">×</button>
+    <video id="fullScreenVideo" controls></video>
   </div>
 
   <script type="module">
+    // Modal video logic
+    const fullScreenContainer = document.getElementById('fullScreenContainer');
+    const fullScreenVideo = document.getElementById('fullScreenVideo');
+    const closeModal = document.getElementById("closeModal");
+
+    document.querySelectorAll(".thumbnail").forEach(thumb => {
+      thumb.addEventListener("click", () => {
+        const videoSrc = thumb.getAttribute("data-video");
+        fullScreenVideo.src = videoSrc;
+        fullScreenContainer.style.display = 'block';
+        if (fullScreenContainer.requestFullscreen) {
+          fullScreenContainer.requestFullscreen().catch(err => { console.error("Fullscreen failed:", err); });
+        }
+        fullScreenVideo.play();
+      });
+    });
+
+    closeModal.addEventListener("click", (event) => {
+      event.stopPropagation();
+      fullScreenVideo.pause();
+      fullScreenVideo.src = '';
+      fullScreenContainer.style.display = 'none';
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(err => console.error("Exit fullscreen failed:", err));
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        fullScreenContainer.style.display = 'none';
+        fullScreenVideo.pause();
+        fullScreenVideo.src = '';
+      }
+    });
+
+    // Firebase and recording logic
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
+
     const firebaseConfig = {
       apiKey: "AIzaSyCqEf5MLL8A4aUTALonrlXOytF73J6FclE",
       authDomain: "take-653e1.firebaseapp.com",
@@ -116,17 +121,11 @@
       appId: "1:996978318172:web:c128d1ceea0c704fd67f99",
       measurementId: "G-TNC7VHBG36"
     };
-
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-    import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
-
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const storage = getStorage(app);
     let userId = null;
-    const subject = "George_W_Bush"; // Administrator-defined subject
-
+    const subject = "1Take_Videos";
     const video = document.getElementById('video');
     const defaultGif = document.getElementById('defaultGif');
     const countdown = document.getElementById('countdown');
@@ -136,19 +135,6 @@
     let mediaRecorder;
     let recordedChunks = [];
 
-    // Handle winner video thumbnail
-    const winnerVideo = document.getElementById('winnerVideo');
-    const winnerThumbnail = document.getElementById('winnerThumbnail');
-    winnerVideo.addEventListener('canplay', () => {
-      console.log('Winner video can play');
-      winnerThumbnail.style.display = 'none';
-    });
-    winnerThumbnail.addEventListener('click', () => {
-      console.log('Thumbnail clicked, hiding');
-      winnerThumbnail.style.display = 'none';
-    });
-    winnerVideo.load(); // Force video load
-
     signInAnonymously(auth).then((userCredential) => {
       userId = userCredential.user.uid;
       console.log("Firebase auth successful, userId:", userId);
@@ -156,51 +142,23 @@
       console.error("Firebase auth failed:", error);
     });
 
+    recordButton.addEventListener('click', async () => {
+      await startWebcam();
+      await startCountdown();
+    });
+
     async function startWebcam() {
       try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          navigator.getUserMedia =
-            navigator.getUserMedia ||
-            navigator.webkitGetUserMedia ||
-            navigator.mozGetUserMedia ||
-            navigator.msGetUserMedia;
-          if (navigator.getUserMedia) {
-            return new Promise((resolve, reject) => {
-              navigator.getUserMedia(
-                { video: { facingMode: { ideal: "user" }, width: { ideal: 360 }, height: { ideal: 480 }, aspectRatio: { ideal: 0.75 } }, audio: true },
-                (stream) => {
-                  console.log('Webcam stream started, resolution:', stream.getVideoTracks()[0].getSettings());
-                  resolve(stream);
-                },
-                (error) => reject(error)
-              );
-            });
-          } else {
-            throw new Error("getUserMedia is not supported in this browser.");
-          }
-        }
-
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "user" }, width: { ideal: 360 }, height: { ideal: 480 }, aspectRatio: { ideal: 0.75 } },
-          audio: true
-        });
-        console.log('Webcam stream started, resolution:', stream.getVideoTracks()[0].getSettings());
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         video.srcObject = stream;
-        video.classList.remove('hidden');
+        video.style.display = 'block';
         video.play();
         mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) recordedChunks.push(e.data);
-        };
+        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
         mediaRecorder.onstop = uploadVideo;
       } catch (error) {
         console.error("Camera access failed:", error);
-        alert(`Failed to access camera: ${error.message}. Please ensure camera permissions are allowed and you're using HTTPS or localhost.`);
-        recordButton.disabled = false;
-        recordButton.textContent = 'Record your 1take';
-        message.textContent = "Camera access failed. Please check permissions or try again.";
-        message.style.visibility = 'visible';
-        setTimeout(() => message.style.visibility = 'hidden', 3000);
+        alert(`Failed to access camera: ${error.message}.`);
       }
     }
 
@@ -214,7 +172,6 @@
       ];
       defaultGif.style.visibility = 'visible';
       video.style.visibility = 'visible';
-      video.play();
       countdown.style.visibility = 'visible';
       timer.style.visibility = 'visible';
 
@@ -225,7 +182,6 @@
       }
       countdown.style.visibility = 'hidden';
       defaultGif.style.visibility = 'hidden';
-      console.log("Countdown finished, starting recording");
       await recordVideo();
     }
 
@@ -239,19 +195,14 @@
       await new Promise(resolve => setTimeout(resolve, 18000)); // 18 seconds
       mediaRecorder.stop();
       timer.style.visibility = 'hidden';
-      // Immediately hide video and show processing message
       video.style.visibility = 'hidden';
       message.textContent = "Processing...";
       message.style.visibility = 'visible';
-      message.style.zIndex = '50';
-      console.log("Recording stopped, showing processing message");
-      // Start upload and show success message concurrently
-      uploadVideo();
       await showMessage();
     }
 
     function startTimer() {
-      let timeLeft = 18; // Matches 18-second recording
+      let timeLeft = 18;
       timer.textContent = timeLeft;
       const timerInterval = setInterval(() => {
         timeLeft--;
@@ -261,60 +212,26 @@
     }
 
     async function uploadVideo() {
-      console.log("Starting uploadVideo, recordedChunks:", recordedChunks.length);
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
-      console.log("Blob created, size:", blob.size);
       const storageRef = ref(storage, `videos/${subject}/${userId}/${Date.now()}.webm`);
       try {
-        console.log("Uploading to Firebase Storage...");
-        const snapshot = await uploadBytes(storageRef, blob);
-        console.log("Upload successful, getting download URL...");
-        const url = await getDownloadURL(snapshot.ref);
-        console.log("Video uploaded, URL:", url);
+        await uploadBytes(storageRef, blob);
+        console.log("Upload successful");
       } catch (error) {
         console.error("Upload failed:", error);
         message.textContent = "Upload failed. Please try again.";
-        message.style.visibility = 'visible';
-        console.log("Showing error message due to upload failure");
-        setTimeout(() => {
-          message.style.visibility = 'hidden';
-          console.log("Hiding error message");
-        }, 3000);
       }
     }
 
     async function showMessage() {
-      console.log("Starting showMessage");
       message.textContent = "Nice! Check 1Take TikTok channel for best do's!";
-      message.style.visibility = 'visible';
-      message.style.zIndex = '50';
-      console.log("Message set to visible, text:", message.textContent);
-      video.style.visibility = 'hidden';
-      defaultGif.style.visibility = 'hidden';
-      console.log("Video and defaultGif hidden");
-      if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-        console.log("Video tracks stopped");
-      }
-
       await new Promise(resolve => setTimeout(resolve, 3000));
-
       message.style.visibility = 'hidden';
-      message.style.zIndex = '25';
-      defaultGif.style.visibility = 'visible';
-      video.style.visibility = 'visible';
+      video.style.display = 'none';
+      defaultGif.style.visibility = 'visible'; // ✅ Fix: show GIF again
       recordButton.disabled = false;
       recordButton.textContent = 'Record your 1take';
-      countdown.style.visibility = 'hidden';
-      timer.style.visibility = 'hidden';
-      console.log("showMessage completed, UI reset");
     }
-
-    recordButton.addEventListener('click', async () => {
-      await startWebcam();
-      await startCountdown();
-    });
   </script>
 </body>
 </html>
