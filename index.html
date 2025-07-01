@@ -55,11 +55,11 @@
       <div id="message" class="absolute inset-0 flex items-center justify-center text-white text-2xl font-bold bg-black bg-opacity-50 hidden"></div>
       <div id="timer"></div>
     </div>
-    <button id="recordButton" class="w-1/2 bg-orange-500 text-black py-2 rounded-lg hover:bg-orange-600 font-extrabold mx-auto block">Record your 1take</button>
+    <button id="recordButton" class="w-2/3 bg-orange-500 text-black py-2 rounded-lg hover:bg-orange-600 font-extrabold mx-auto block">Now record your 1take</button>
     <p class="text-center text-xs mt-2">You consent to us posting on our TikTok channel</p>
   </div>
 
-  <h2 class="text-xl font-bold mt-10">Hall of Famers</h2>
+  <h2 class="text-xl font-bold mt-10">Today's Best Takes</h2>
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-6xl px-4">
     <div class="video-container"><img src="./static/1.png" alt="Player 1" class="thumbnail" data-video="./static/1.mp4"></div>
     <div class="video-container"><img src="./static/2.png" alt="Player 2" class="thumbnail" data-video="./static/2.mp4"></div>
@@ -195,7 +195,7 @@
         video.style.display = 'none';
         defaultGif.style.visibility = 'visible';
         recordButton.disabled = false;
-        recordButton.textContent = 'Record your 1take';
+        recordButton.textContent = 'Now record your 1take';
       }
     }
 
@@ -279,7 +279,7 @@
       video.style.display = 'none';
       defaultGif.style.visibility = 'visible';
       recordButton.disabled = false;
-      recordButton.textContent = 'Record your 1take';
+      recordButton.textContent = 'Now record your 1take';
     }
   </script>
 </body>
