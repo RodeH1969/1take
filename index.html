@@ -43,6 +43,9 @@
       visibility: visible;
       z-index: 12;
     }
+    #rodVideo { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #000; z-index: 1001; display: none; }
+    #rodVideo video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    #closeRod { position: absolute; top: 20px; right: 30px; color: white; font-size: 3rem; font-weight: bold; background: none; border: none; cursor: pointer; z-index: 1002; }
   </style>
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
@@ -64,12 +67,19 @@
     <div class="video-container"><img src="./static/1st.gif" alt="Player 1" class="thumbnail" data-video="./static/1.mp4"></div>
     <div class="video-container"><img src="./static/2nd.gif" alt="Player 2" class="thumbnail" data-video="./static/2.mp4"></div>
     <div class="video-container"><img src="./static/3rd.gif" alt="Player 3" class="thumbnail" data-video="./static/3.mp4"></div>
-    <div class="video-container"><img src="./static/4th.gif" alt="Player 4" class="thumbnail" data-video="./static/4.mp4"></div>
+    <div class="video-container"><img src="./static/4th.gif" alt="Player 4" class="thumbnail" data-video="./static/rod.webm"></div>
   </div>
 
   <div id="fullScreenContainer" class="full-screen-video">
     <button id="closeModal" style="position:absolute;top:20px;right:30px;color:white;font-size:3rem;font-weight:bold;background:none;border:none;cursor:pointer;z-index:1001;">×</button>
     <video id="fullScreenVideo" controls playsinline></video>
+  </div>
+
+  <div id="rodVideo" class="full-screen-video">
+    <button id="closeRod" onclick="document.getElementById('rodVideo').style.display='none'">×</button>
+    <video id="rodPlayer" controls autoplay playsinline>
+      <source src="./static/rod.webm" type="video/webm">
+    </video>
   </div>
 
   <script type="module">
@@ -78,20 +88,28 @@
     const closeModal = document.getElementById("closeModal");
     const video = document.getElementById('video');
     const defaultGif = document.getElementById('defaultGif');
+    const rodVideo = document.getElementById('rodVideo');
+    const rodPlayer = document.getElementById('rodPlayer');
+    const closeRod = document.getElementById('closeRod');
 
-    document.querySelectorAll(".thumbnail").forEach(thumb => {
+    document.querySelectorAll(".thumbnail").forEach((thumb, index) => {
       thumb.addEventListener("click", () => {
-        const videoSrc = thumb.getAttribute("data-video");
-        fullScreenVideo.src = videoSrc;
-        fullScreenContainer.style.display = 'block';
-        if (fullScreenVideo.requestFullscreen) {
-          fullScreenVideo.requestFullscreen().catch(err => {
-            console.error("Fullscreen failed:", err);
-            fullScreenVideo.style.minWidth = '100vw';
-            fullScreenVideo.style.minHeight = '100vh';
-          });
+        if (index === 3) { // 4th.gif (index 3)
+          rodVideo.style.display = 'block';
+          rodPlayer.play().catch(err => console.error("Rod video playback failed:", err));
+        } else {
+          const videoSrc = thumb.getAttribute("data-video");
+          fullScreenVideo.src = videoSrc;
+          fullScreenContainer.style.display = 'block';
+          if (fullScreenVideo.requestFullscreen) {
+            fullScreenVideo.requestFullscreen().catch(err => {
+              console.error("Fullscreen failed:", err);
+              fullScreenVideo.style.minWidth = '100vw';
+              fullScreenVideo.style.minHeight = '100vh';
+            });
+          }
+          fullScreenVideo.play();
         }
-        fullScreenVideo.play();
       });
     });
 
@@ -132,6 +150,23 @@
       video.src = '';
       video.style.display = 'none';
       defaultGif.style.visibility = 'visible';
+    });
+
+    // Close rodVideo with Escape key or X button
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && rodVideo.style.display === 'block') {
+        rodVideo.style.display = 'none';
+        rodPlayer.pause();
+      }
+    });
+
+    closeRod.addEventListener('click', () => {
+      rodVideo.style.display = 'none';
+      rodPlayer.pause();
+    });
+
+    rodPlayer.addEventListener('ended', () => {
+      rodVideo.style.display = 'none';
     });
 
     // Firebase & recording logic
