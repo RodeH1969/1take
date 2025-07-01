@@ -35,8 +35,20 @@
       min-height: 100vh;
       max-width: 100vw;
       max-height: 100vh;
-      object-fit: contain; /* ✅ unchanged from base code */
+      object-fit: contain;
       background: #000;
+    }
+    #playNowButton {
+      visibility: visible;
+      transition: opacity 0.3s;
+    }
+    #playNowButton.hidden {
+      visibility: hidden;
+    }
+    #video.playing-mp4 {
+      display: block;
+      visibility: visible;
+      z-index: 12;
     }
   </style>
 </head>
@@ -49,12 +61,12 @@
       <div id="countdown" class="absolute inset-0 flex items-center justify-center text-white font-bold hidden"></div>
       <div id="message" class="absolute inset-0 flex items-center justify-center text-white text-2xl font-bold bg-black bg-opacity-50 hidden"></div>
       <div id="timer"></div>
+      <button id="playNowButton" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-orange-500 text-black py-2 px-4 rounded-lg hover:bg-orange-600 font-extrabold z-20">Play Now</button>
     </div>
     <button id="recordButton" class="w-1/2 bg-orange-500 text-black py-2 rounded-lg hover:bg-orange-600 font-extrabold mx-auto block">Record your 1take</button>
     <p class="text-center text-xs mt-2">You consent to us posting on our TikTok channel</p>
   </div>
 
-  <!-- Grid of GIF thumbnails -->
   <h2 class="text-xl font-bold mt-10">Hall of Famers</h2>
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-6xl px-4">
     <div class="video-container"><img src="./static/bobbybaccalieri.gif" alt="Bobby Baccalieri" class="thumbnail" data-video="./static/bobbybaccalieri.mp4"></div>
@@ -76,7 +88,6 @@
     <div class="video-container"><img src="./static/trump2.gif" alt="Trump2" class="thumbnail" data-video="./static/trump2.mp4"></div>
   </div>
 
-  <!-- Modal for full screen video -->
   <div id="fullScreenContainer" class="full-screen-video">
     <button id="closeModal" style="position:absolute;top:20px;right:30px;color:white;font-size:3rem;font-weight:bold;background:none;border:none;cursor:pointer;z-index:1001;">×</button>
     <video id="fullScreenVideo" controls playsinline></video>
@@ -121,7 +132,34 @@
       }
     });
 
-    // Firebase & recording logic (untouched as requested)
+    // Play Now button logic
+    const playNowButton = document.getElementById('playNowButton');
+    const video = document.getElementById('video');
+    const defaultGif = document.getElementById('defaultGif');
+
+    playNowButton.addEventListener('click', () => {
+      defaultGif.style.visibility = 'hidden';
+      playNowButton.classList.add('hidden');
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
+      video.src = './static/robbiewilliams.mp4';
+      video.classList.add('playing-mp4');
+      video.style.display = 'block';
+      video.muted = false;
+      video.play();
+    });
+
+    video.addEventListener('ended', () => {
+      video.classList.remove('playing-mp4');
+      video.src = '';
+      video.style.display = 'none';
+      defaultGif.style.visibility = 'visible';
+      playNowButton.classList.remove('hidden');
+    });
+
+    // Firebase & recording logic
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
     import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
     import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
@@ -140,8 +178,6 @@
     const storage = getStorage(app);
     let userId = null;
     const subject = "1Take_Videos";
-    const video = document.getElementById('video');
-    const defaultGif = document.getElementById('defaultGif');
     const countdown = document.getElementById('countdown');
     const message = document.getElementById('message');
     const recordButton = document.getElementById('recordButton');
@@ -156,6 +192,7 @@
     });
 
     recordButton.addEventListener('click', async () => {
+      playNowButton.classList.add('hidden');
       await startWebcam();
       await startCountdown();
     });
@@ -204,7 +241,7 @@
       recordButton.textContent = 'Recording...';
       video.play();
       startTimer();
-      await new Promise(resolve => setTimeout(resolve, 18000)); // 18 seconds
+      await new Promise(resolve => setTimeout(resolve, 18000));
       mediaRecorder.stop();
       timer.style.visibility = 'hidden';
       video.style.visibility = 'hidden';
@@ -241,6 +278,7 @@
       message.style.visibility = 'hidden';
       video.style.display = 'none';
       defaultGif.style.visibility = 'visible';
+      playNowButton.classList.remove('hidden');
       recordButton.disabled = false;
       recordButton.textContent = 'Record your 1take';
     }
