@@ -174,7 +174,11 @@
       if (!userId) {
         message.textContent = "Not authenticated. Please wait and try again.";
         console.log("Waiting for authentication...");
-        return;
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for auth
+        if (!userId) {
+          message.textContent = "Authentication failed. Please refresh and try again.";
+          return;
+        }
       }
       await startWebcam();
       if (mediaRecorder) {
@@ -241,6 +245,7 @@
       if (!mediaRecorder) {
         console.error("MediaRecorder not initialized");
         message.textContent = "Recording failed. Please try again.";
+        await showMessage();
         return;
       }
       recordedChunks = [];
@@ -257,7 +262,6 @@
       video.style.visibility = 'hidden';
       message.textContent = "Processing...";
       message.style.visibility = 'visible';
-      await showMessage();
     }
 
     function startTimer() {
@@ -304,11 +308,14 @@
       } catch (error) {
         console.error("Upload failed:", error.code, error.message);
         message.textContent = `Upload failed: ${error.message}`;
+      } finally {
+        await showMessage();
       }
-      await showMessage();
     }
 
     async function showMessage() {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      message.textContent = "Good job! Check back tomorrow to see if you're a Hall of Famer!";
       await new Promise(resolve => setTimeout(resolve, 3000));
       message.style.visibility = 'hidden';
       video.style.display = 'none';
