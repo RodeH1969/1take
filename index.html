@@ -73,34 +73,11 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-    import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-    import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCqEf5MLL8A4aUTALonrlXOytF73J6FclE",
-      authDomain: "take-653e1.firebaseapp.com",
-      projectId: "take-653e1",
-      storageBucket: "take-653e1.appspot.com", // ✅ FIXED
-      messagingSenderId: "996978318172",
-      appId: "1:996978318172:web:c128d1ceea0c704fd67f99",
-      measurementId: "G-TNC7VHBG36"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const storage = getStorage(app);
-    let userId = null;
-    const subject = "1take";
-    const countdown = document.getElementById('countdown');
-    const message = document.getElementById('message');
-    const recordButton = document.getElementById('recordButton');
-    const timer = document.getElementById('timer');
-    const video = document.getElementById('video');
-    const defaultGif = document.getElementById('defaultGif');
     const fullScreenContainer = document.getElementById('fullScreenContainer');
     const fullScreenVideo = document.getElementById('fullScreenVideo');
     const closeModal = document.getElementById("closeModal");
+    const video = document.getElementById('video');
+    const defaultGif = document.getElementById('defaultGif');
 
     document.querySelectorAll(".thumbnail").forEach(thumb => {
       thumb.addEventListener("click", () => {
@@ -136,6 +113,7 @@
       }
     });
 
+    // Play robbiewilliams.mp4 when clicking 1take.gif
     defaultGif.addEventListener('click', () => {
       defaultGif.style.visibility = 'hidden';
       if (video.srcObject) {
@@ -156,35 +134,88 @@
       defaultGif.style.visibility = 'visible';
     });
 
+    // Firebase & recording logic
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCqEf5MLL8A4aUTALonrlXOytF73J6FclE",
+      authDomain: "take-653e1.firebaseapp.com",
+      projectId: "take-653e1",
+      storageBucket: "take-653e1.appspot.com",
+      messagingSenderId: "996978318172",
+      appId: "1:996978318172:web:c128d1ceea0c704fd67f99",
+      measurementId: "G-TNC7VHBG36"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+    let userId = null;
+    const subject = "1Take_Videos";
+    const countdown = document.getElementById('countdown');
+    const message = document.getElementById('message');
+    const recordButton = document.getElementById('recordButton');
+    const timer = document.getElementById('timer');
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let stream = null;
+
     signInAnonymously(auth).then((userCredential) => {
       userId = userCredential.user.uid;
+      console.log("Authenticated user ID:", userId);
+    }).catch((error) => {
+      console.error("Firebase auth failed:", error.code, error.message);
+      message.textContent = "Authentication failed. Please try again.";
     });
 
     recordButton.addEventListener('click', async () => {
+      if (!userId) {
+        message.textContent = "Not authenticated. Please wait and try again.";
+        console.log("Waiting for authentication...");
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        if (!userId) {
+          message.textContent = "Authentication failed. Please refresh and try again.";
+          return;
+        }
+      }
       await startWebcam();
       if (mediaRecorder) {
         await startCountdown();
       }
     });
 
-    let mediaRecorder = null;
-    let recordedChunks = [];
-    let stream = null;
-
     async function startWebcam() {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        video.srcObject = stream;
-        video.muted = true;
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        video.srcObject = null; // No video feed
+        video.src = './static/reallovelyrics.mp4';
+        video.classList.add('playing-mp4');
         video.style.display = 'block';
-        video.play();
+        video.muted = true; // Prevent audio feedback
         mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
         mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) recordedChunks.push(e.data);
+          if (e.data.size > 0) {
+            recordedChunks.push(e.data);
+            console.log("Data chunk received:", e.data.size, "bytes");
+          } else {
+            console.log("Empty data chunk received");
+          }
         };
         mediaRecorder.onstop = uploadVideo;
       } catch (error) {
-        alert(`Failed to access camera and microphone: ${error.message}`);
+        alert(`Failed to access microphone: ${error.message}`);
+        console.error("Microphone access failed:", error.code, error.message);
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
+        }
+        video.src = '';
+        video.style.display = 'none';
+        defaultGif.style.visibility = 'visible';
+        recordButton.disabled = false;
+        recordButton.textContent = 'Now record your 1take';
       }
     }
 
@@ -197,13 +228,12 @@
         { text: "Go", class: 'action' }
       ];
       defaultGif.style.visibility = 'visible';
-      video.style.visibility = 'visible';
       countdown.style.visibility = 'visible';
       timer.style.visibility = 'visible';
 
       for (let msg of messages) {
         countdown.textContent = msg.text;
-        countdown.className = `absolute inset-0 flex items-center justify-center text-white font-bold ${msg.class}`;
+        countdown.className = `absolute inset-0 flex items-center justify-content-center text-white font-bold ${msg.class}`;
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
       countdown.style.visibility = 'hidden';
@@ -212,16 +242,27 @@
     }
 
     async function recordVideo() {
+      if (!mediaRecorder) {
+        console.error("MediaRecorder not initialized");
+        message.textContent = "Recording failed. Please try again.";
+        await showMessage();
+        return;
+      }
       recordedChunks = [];
       mediaRecorder.start();
+      console.log("Recording started");
       recordButton.disabled = true;
       recordButton.textContent = 'Recording...';
       video.play();
+      video.loop = false; // Play once
+      video.addEventListener('ended', () => {
+        video.pause(); // Hold last frame
+      }, { once: true });
       startTimer();
       await new Promise(resolve => setTimeout(resolve, 18000));
       mediaRecorder.stop();
+      console.log("Recording stopped");
       timer.style.visibility = 'hidden';
-      video.style.visibility = 'hidden';
       message.textContent = "Processing...";
       message.style.visibility = 'visible';
     }
@@ -232,27 +273,46 @@
       const timerInterval = setInterval(() => {
         timeLeft--;
         timer.textContent = timeLeft;
-        if (timeLeft <= 0) clearInterval(timerInterval);
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          video.pause(); // Ensure video pauses at 18 seconds
+        }
       }, 1000);
     }
 
     async function uploadVideo() {
-      if (stream) stream.getTracks().forEach(track => track.stop());
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      video.src = '';
       video.srcObject = null;
       mediaRecorder = null;
 
-      if (recordedChunks.length === 0) {
+      if (recordedChunks.length === 0 || !recordedChunks.some(chunk => chunk.size > 0)) {
+        console.error("No valid recorded data");
         message.textContent = "No recording data. Please try again.";
         await showMessage();
         return;
       }
 
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
-      const storageRef = ref(storage, `1take/${userId}/${Date.now()}.webm`);
+      console.log("Blob created, size:", blob.size, "bytes");
+      if (blob.size === 0) {
+        console.error("Empty blob, upload aborted");
+        message.textContent = "Recording is empty. Please try again.";
+        await showMessage();
+        return;
+      }
+
+      const storageRef = ref(storage, `videos/${subject}/${userId}/${Date.now()}.webm`);
+      console.log("Uploading to:", storageRef.fullPath);
       try {
         await uploadBytes(storageRef, blob);
+        console.log("Upload successful to:", storageRef.fullPath);
         message.textContent = "Upload successful!";
       } catch (error) {
+        console.error("Upload failed:", error.code, error.message);
         message.textContent = `Upload failed: ${error.message}`;
       } finally {
         await showMessage();
@@ -262,7 +322,6 @@
     async function showMessage() {
       await new Promise(resolve => setTimeout(resolve, 3000));
       message.textContent = "Good job! Check back tomorrow to see if you're a Hall of Famer!";
-      message.style.visibility = 'visible';  // ✅ ADDED
       await new Promise(resolve => setTimeout(resolve, 3000));
       message.style.visibility = 'hidden';
       video.style.display = 'none';
