@@ -174,7 +174,7 @@
       if (!userId) {
         message.textContent = "Not authenticated. Please wait and try again.";
         console.log("Waiting for authentication...");
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for auth
+        await new Promise(resolve => setTimeout(resolve, 2000));
         if (!userId) {
           message.textContent = "Authentication failed. Please refresh and try again.";
           return;
@@ -233,7 +233,7 @@
 
       for (let msg of messages) {
         countdown.textContent = msg.text;
-        countdown.className = `absolute inset-0 flex items-center justify-content-center text-white font-bold ${msg.class}`;
+        countdown.className = `absolute inset-0 flex items-center justify-center text-white font-bold ${msg.class}`;
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
       countdown.style.visibility = 'hidden';
@@ -275,7 +275,6 @@
     }
 
     async function uploadVideo() {
-      // Stop media stream
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
         stream = null;
