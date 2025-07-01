@@ -76,7 +76,7 @@
     const fullScreenContainer = document.getElementById('fullScreenContainer');
     const fullScreenVideo = document.getElementById('fullScreenVideo');
     const closeModal = document.getElementById("closeModal");
-    const video = document.getElementById('video');
+    const video = document.getElementById('defaultGif');
     const defaultGif = document.getElementById('defaultGif');
 
     document.querySelectorAll(".thumbnail").forEach(thumb => {
@@ -159,6 +159,7 @@
     const timer = document.getElementById('timer');
     let mediaRecorder;
     let recordedChunks = [];
+    let stream = null;
 
     signInAnonymously(auth).then((userCredential) => {
       userId = userCredential.user.uid;
@@ -173,8 +174,9 @@
 
     async function startWebcam() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         video.srcObject = stream;
+        video.muted = true; // Prevent audio feedback
         video.style.display = 'block';
         video.play();
         mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
@@ -235,6 +237,13 @@
     }
 
     async function uploadVideo() {
+      // Stop media stream
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      video.srcObject = null;
+
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
       const storageRef = ref(storage, `videos/${subject}/${userId}/${Date.now()}.webm`);
       try {
