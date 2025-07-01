@@ -56,7 +56,7 @@
       <div id="timer"></div>
     </div>
     <button id="recordButton" class="w-2/3 bg-orange-500 text-black py-2 rounded-lg hover:bg-orange-600 font-extrabold mx-auto block">Now record your 1take</button>
-    <p class="text-center text-xs mt-2">You consent to us posting on our TikTok channel</p>
+    <p class="text-center text-xs mt-2">Best 4 takes get posted for everyone to hear!</p>
   </div>
 
   <h2 class="text-xl font-bold mt-10">Today's Best Takes</h2>
@@ -140,13 +140,13 @@
     import { getStorage, ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js';
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCqEf5MLL8A4aUTALonrlXOytF73J6FclE",
-      authDomain: "take-653e1.firebaseapp.com",
-      projectId: "take-653e1",
-      storageBucket: "take-653e1.appspot.com",
-      messagingSenderId: "996978318172",
-      appId: "1:996978318172:web:c128d1ceea0c704fd67f99",
-      measurementId: "G-TNC7VHBG36"
+      apiKey: "AIzaSyCY_32qpmkA2qfy_z2TaUN6H4cCl5E5brI",
+      authDomain: "take2-37f81.firebaseapp.com",
+      projectId: "take2-37f81",
+      storageBucket: "take2-37f81.firebasestorage.app",
+      messagingSenderId: "657843076254",
+      appId: "1:657843076254:web:7de2098e3b2881608a4f8f",
+      measurementId: "G-JTG7JF2Q9R"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -194,7 +194,7 @@
         video.classList.add('playing-mp4');
         video.style.display = 'block';
         video.muted = true; // Prevent audio feedback
-        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
         mediaRecorder.ondataavailable = (e) => {
           if (e.data.size > 0) {
             recordedChunks.push(e.data);
@@ -301,7 +301,7 @@
         return;
       }
 
-      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
       console.log("Blob created, size:", blob.size, "bytes");
       if (blob.size === 0) {
         console.error("Empty blob, upload aborted");
@@ -315,7 +315,7 @@
       try {
         await uploadBytes(storageRef, blob);
         console.log("Upload successful to:", storageRef.fullPath);
-        message.textContent = "Upload successful!";
+        message.textContent = "Good job! Check back tomorrow at 7am to see if you made the best 4 takes from today!";
       } catch (error) {
         console.error("Upload failed:", error.code, error.message);
         message.textContent = `Upload failed: ${error.message}`;
@@ -326,7 +326,7 @@
 
     async function showMessage() {
       await new Promise(resolve => setTimeout(resolve, 3000));
-      message.textContent = "Good job! Check back tomorrow to see if you're a Hall of Famer!";
+      message.textContent = "Good job! Check back tomorrow at 7am to see if you made the best 4 takes from today!";
       await new Promise(resolve => setTimeout(resolve, 3000));
       message.style.visibility = 'hidden';
       video.style.display = 'none';

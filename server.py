@@ -1,19 +1,17 @@
-from http.server import HTTPServer, SimpleHTTPRequestHandler
-import ssl
+from flask import Flask
+from flask_sslify import SSLify
 import os
 
-# Change to the directory where server.py is located
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+app = Flask(__name__)
+sslify = SSLify(app)
 
-# Create HTTP server
-httpd = HTTPServer(('0.0.0.0', 8443), SimpleHTTPRequestHandler)
+@app.route('/')
+def serve_index():
+    return open('index.html').read()
 
-# Create SSL context
-context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-context.load_cert_chain(certfile='cert.pem', keyfile='key.pem')
+@app.route('/static/<path:path>')
+def serve_static(path):
+    return open(f'static/{path}', 'rb').read()
 
-# Wrap socket with SSL
-httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
-
-print("Serving HTTPS on port 8443...")
-httpd.serve_forever()
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, ssl_context=('cert.pem', 'key.pem'))
