@@ -59,7 +59,7 @@
     <p class="text-center text-xs mt-2">Best 4 takes get posted for everyone to hear!</p>
   </div>
 
-  <h2 class="text-xl font-bold mt-10">Today's Best Takes</h2>
+  <h2 class="text-xl font-bold mt-10">Today's 'Notable' Takes</h2>
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-6xl px-4">
     <div class="video-container"><img src="./static/1st.gif" alt="Player 1" class="thumbnail" data-video="./static/1.mp4"></div>
     <div class="video-container"><img src="./static/2nd.gif" alt="Player 2" class="thumbnail" data-video="./static/2.mp4"></div>
@@ -154,7 +154,7 @@
     const storage = getStorage(app);
     let userId = null;
     const artist = "RobbieWilliams"; // Update to new artist tomorrow
-    const date = "2025-07-01"; // Update to "2025-07-02" tomorrow
+    const date = "2025-07-02"; // Updated for today
     const subject = "1Take_Videos";
     const countdown = document.getElementById('countdown');
     const message = document.getElementById('message');
@@ -223,8 +223,8 @@
 
     async function startCountdown() {
       const messages = [
-        { text: "You've got 18 seconds", class: 'initial' },
         { text: "You've got 1 take", class: 'initial' },
+        { text: "Wait for the lyrics to appear", class: 'initial' },
         { text: "Ready", class: 'action' },
         { text: "Setty", class: 'action' },
         { text: "Aaaand Go!", class: 'action' }
@@ -317,7 +317,7 @@
       try {
         await uploadBytes(storageRef, blob);
         console.log("Upload successful to:", storageRef.fullPath);
-        message.textContent = "Good job! Check back tomorrow at 7am to see if you made the best 4 takes from today!";
+        message.textContent = "Good job! Check back today at 7am to see if you made the best 4 takes from today!";
       } catch (error) {
         console.error("Upload failed:", error.code, error.message);
         message.textContent = `Upload failed: ${error.message}`;
@@ -328,7 +328,7 @@
 
     async function showMessage() {
       await new Promise(resolve => setTimeout(resolve, 3000));
-      message.textContent = "Good job! Check back tomorrow at 7am to see if you made the best 4 takes from today!";
+      message.textContent = "Good job! Check back today at 7am to see if you made the best 4 takes from today!";
       await new Promise(resolve => setTimeout(resolve, 3000));
       message.style.visibility = 'hidden';
       video.style.display = 'none';
