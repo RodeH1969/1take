@@ -23,7 +23,7 @@
       justify-content: center; text-align: center; font-size: 1.5rem; padding: 20px;
     }
     #video { z-index: 10; object-fit: contain; width: 100%; height: 100%; display: none; }
-    #defaultGif { z-index: 15; }
+    #defaultGif { z-index: 15; cursor: pointer; }
     .video-container { position: relative; width: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .thumbnail { cursor: pointer; border-radius: 6px; transition: transform 0.2s; }
     .thumbnail:hover { transform: scale(1.05); }
@@ -37,13 +37,6 @@
       max-height: 100vh;
       object-fit: contain;
       background: #000;
-    }
-    #playNowButton {
-      visibility: visible;
-      transition: opacity 0.3s;
-    }
-    #playNowButton.hidden {
-      visibility: hidden;
     }
     #video.playing-mp4 {
       display: block;
@@ -61,7 +54,6 @@
       <div id="countdown" class="absolute inset-0 flex items-center justify-center text-white font-bold hidden"></div>
       <div id="message" class="absolute inset-0 flex items-center justify-center text-white text-2xl font-bold bg-black bg-opacity-50 hidden"></div>
       <div id="timer"></div>
-      <button id="playNowButton" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-orange-500 text-black py-2 px-4 rounded-lg hover:bg-orange-600 font-extrabold z-20">Play Now</button>
     </div>
     <button id="recordButton" class="w-1/2 bg-orange-500 text-black py-2 rounded-lg hover:bg-orange-600 font-extrabold mx-auto block">Record your 1take</button>
     <p class="text-center text-xs mt-2">You consent to us posting on our TikTok channel</p>
@@ -69,23 +61,10 @@
 
   <h2 class="text-xl font-bold mt-10">Hall of Famers</h2>
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-6xl px-4">
-    <div class="video-container"><img src="./static/bobbybaccalieri.gif" alt="Bobby Baccalieri" class="thumbnail" data-video="./static/bobbybaccalieri.mp4"></div>
-    <div class="video-container"><img src="./static/brent1.gif" alt="Brent1" class="thumbnail" data-video="./static/brent1.mp4"></div>
-    <div class="video-container"><img src="./static/brent2.gif" alt="Brent2" class="thumbnail" data-video="./static/brent2.mp4"></div>
-    <div class="video-container"><img src="./static/brent3.gif" alt="Brent3" class="thumbnail" data-video="./static/brent3.mp4"></div>
-    <div class="video-container"><img src="./static/brent4.gif" alt="Brent4" class="thumbnail" data-video="./static/brent4.mp4"></div>
-    <div class="video-container"><img src="./static/dubya1.gif" alt="Dubya1" class="thumbnail" data-video="./static/dubya1.mp4"></div>
-    <div class="video-container"><img src="./static/dubya2.gif" alt="Dubya2" class="thumbnail" data-video="./static/dubya2.mp4"></div>
-    <div class="video-container"><img src="./static/nealpage.gif" alt="Neal Page" class="thumbnail" data-video="./static/nealpage.mp4"></div>
-    <div class="video-container"><img src="./static/nedryerson.gif" alt="Ned Ryerson" class="thumbnail" data-video="./static/nedryerson1.mp4"></div>
-    <div class="video-container"><img src="./static/owenwilson.gif" alt="Owen Wilson" class="thumbnail" data-video="./static/owenwilson.mp4"></div>
-    <div class="video-container"><img src="./static/paulie.gif" alt="Paulie" class="thumbnail" data-video="./static/paulie1.mp4"></div>
-    <div class="video-container"><img src="./static/tonysoprano1.gif" alt="Tony Soprano1" class="thumbnail" data-video="./static/tonysoprano1.mp4"></div>
-    <div class="video-container"><img src="./static/tonysoprano2.gif" alt="Tony Soprano2" class="thumbnail" data-video="./static/tonysoprano2.mp4"></div>
-    <div class="video-container"><img src="./static/tonysoprano3.gif" alt="Tony Soprano3" class="thumbnail" data-video="./static/tonysoprano3.mp4"></div>
-    <div class="video-container"><img src="./static/tonysoprano5.gif" alt="Tony Soprano5" class="thumbnail" data-video="./static/Tonysoprano5.mp4"></div>
-    <div class="video-container"><img src="./static/trump1.gif" alt="Trump1" class="thumbnail" data-video="./static/trump.mp4"></div>
-    <div class="video-container"><img src="./static/trump2.gif" alt="Trump2" class="thumbnail" data-video="./static/trump2.mp4"></div>
+    <div class="video-container"><img src="./static/1.png" alt="Player 1" class="thumbnail" data-video="./static/1.mp4"></div>
+    <div class="video-container"><img src="./static/2.png" alt="Player 2" class="thumbnail" data-video="./static/2.mp4"></div>
+    <div class="video-container"><img src="./static/3.png" alt="Player 3" class="thumbnail" data-video="./static/3.mp4"></div>
+    <div class="video-container"><img src="./static/4.png" alt="Player 4" class="thumbnail" data-video="./static/4.mp4"></div>
   </div>
 
   <div id="fullScreenContainer" class="full-screen-video">
@@ -97,6 +76,8 @@
     const fullScreenContainer = document.getElementById('fullScreenContainer');
     const fullScreenVideo = document.getElementById('fullScreenVideo');
     const closeModal = document.getElementById("closeModal");
+    const video = document.getElementById('video');
+    const defaultGif = document.getElementById('defaultGif');
 
     document.querySelectorAll(".thumbnail").forEach(thumb => {
       thumb.addEventListener("click", () => {
@@ -132,14 +113,9 @@
       }
     });
 
-    // Play Now button logic
-    const playNowButton = document.getElementById('playNowButton');
-    const video = document.getElementById('video');
-    const defaultGif = document.getElementById('defaultGif');
-
-    playNowButton.addEventListener('click', () => {
+    // Play robbiewilliams.mp4 when clicking 1take.gif
+    defaultGif.addEventListener('click', () => {
       defaultGif.style.visibility = 'hidden';
-      playNowButton.classList.add('hidden');
       if (video.srcObject) {
         video.srcObject.getTracks().forEach(track => track.stop());
         video.srcObject = null;
@@ -156,7 +132,6 @@
       video.src = '';
       video.style.display = 'none';
       defaultGif.style.visibility = 'visible';
-      playNowButton.classList.remove('hidden');
     });
 
     // Firebase & recording logic
@@ -192,7 +167,6 @@
     });
 
     recordButton.addEventListener('click', async () => {
-      playNowButton.classList.add('hidden');
       await startWebcam();
       await startCountdown();
     });
@@ -226,7 +200,7 @@
 
       for (let msg of messages) {
         countdown.textContent = msg.text;
-        countdown.className = `absolute inset-0 flex items-center justify-center text-white font-bold ${msg.class}`;
+        countdown.className = `absolute inset-0 flex items-center justify-content-center text-white font-bold ${msg.class}`;
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
       countdown.style.visibility = 'hidden';
@@ -278,7 +252,6 @@
       message.style.visibility = 'hidden';
       video.style.display = 'none';
       defaultGif.style.visibility = 'visible';
-      playNowButton.classList.remove('hidden');
       recordButton.disabled = false;
       recordButton.textContent = 'Record your 1take';
     }
