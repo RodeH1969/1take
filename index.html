@@ -153,6 +153,8 @@
     const auth = getAuth(app);
     const storage = getStorage(app);
     let userId = null;
+    const artist = "RobbieWilliams"; // Update to new artist tomorrow (e.g., "ArtistName")
+    const date = "2025-07-01"; // Update to "2025-07-02" tomorrow
     const subject = "1Take_Videos";
     const countdown = document.getElementById('countdown');
     const message = document.getElementById('message');
@@ -310,7 +312,7 @@
         return;
       }
 
-      const storageRef = ref(storage, `videos/${subject}/${userId}/${Date.now()}.webm`);
+      const storageRef = ref(storage, `videos/${artist}/${date}/${userId}/${Date.now()}.webm`);
       console.log("Uploading to:", storageRef.fullPath);
       try {
         await uploadBytes(storageRef, blob);
