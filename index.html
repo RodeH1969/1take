@@ -163,11 +163,17 @@
 
     signInAnonymously(auth).then((userCredential) => {
       userId = userCredential.user.uid;
+      console.log("Authenticated user ID:", userId);
     }).catch((error) => {
       console.error("Firebase auth failed:", error);
+      message.textContent = "Authentication failed. Please try again.";
     });
 
     recordButton.addEventListener('click', async () => {
+      if (!userId) {
+        message.textContent = "Not authenticated. Please wait and try again.";
+        return;
+      }
       await startWebcam();
       if (mediaRecorder) {
         await startCountdown();
@@ -182,7 +188,12 @@
         video.style.display = 'block';
         video.play();
         mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) {
+            recordedChunks.push(e.data);
+            console.log("Data chunk received:", e.data.size);
+          }
+        };
         mediaRecorder.onstop = uploadVideo;
       } catch (error) {
         alert(`Failed to access camera and microphone: ${error.message}`);
@@ -225,6 +236,7 @@
     async function recordVideo() {
       if (!mediaRecorder) {
         console.error("MediaRecorder not initialized");
+        message.textContent = "Recording failed. Please try again.";
         return;
       }
       recordedChunks = [];
@@ -261,19 +273,35 @@
       video.srcObject = null;
       mediaRecorder = null;
 
+      if (recordedChunks.length === 0 || !recordedChunks.some(chunk => chunk.size > 0)) {
+        console.error("No recorded data to upload");
+        message.textContent = "No recording data. Please try again.";
+        await showMessage();
+        return;
+      }
+
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      console.log("Blob size:", blob.size);
+      if (blob.size === 0) {
+        console.error("Empty blob, upload aborted");
+        message.textContent = "Recording is empty. Please try again.";
+        await showMessage();
+        return;
+      }
+
       const storageRef = ref(storage, `videos/${subject}/${userId}/${Date.now()}.webm`);
       try {
         await uploadBytes(storageRef, blob);
-        console.log("Upload successful");
+        console.log("Upload successful to:", storageRef.fullPath);
+        message.textContent = "Upload successful!";
       } catch (error) {
-        console.error("Upload failed:", error);
-        message.textContent = "Upload failed. Please try again.";
+        console.error("Upload failed:", error.code, error.message);
+        message.textContent = `Upload failed: ${error.message}`;
       }
+      await showMessage();
     }
 
     async function showMessage() {
-      message.textContent = "Good job! Check back tomorrow to see if you're a Hall of Famer!";
       await new Promise(resolve => setTimeout(resolve, 3000));
       message.style.visibility = 'hidden';
       video.style.display = 'none';
