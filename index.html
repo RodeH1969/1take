@@ -293,7 +293,7 @@
       try {
         await video.play();
       } catch (error) {
-        console.error("Lyrics video playback failed:", error.message);
+        console.error("Lyrics video playback failed:", err.message);
         // Continue recording even if video fails
       }
       video.loop = false; // Play once
@@ -352,7 +352,7 @@
       try {
         await uploadBytes(storageRef, blob);
         console.log("Upload successful to:", storageRef.fullPath);
-        message.textContent = "Good job! Check back today at 7am to see if you made the best 4 takes from today!";
+        message.textContent = "Good job! Check back tomorrow at 7am to see if you made the best 4 takes!";
       } catch (error) {
         console.error("Upload failed:", error.code, error.message);
         message.textContent = `Upload failed: ${error.message}`;
@@ -363,7 +363,7 @@
 
     async function showMessage() {
       await new Promise(resolve => setTimeout(resolve, 3000));
-      message.textContent = "Good job! Check back today at 7am to see if you made the best 4 takes from today!";
+      message.textContent = "Good job! Check back tomorrow at 7am to see if you made the best 4 takes!";
       await new Promise(resolve => setTimeout(resolve, 3000));
       message.style.visibility = 'hidden';
       video.style.display = 'none';
