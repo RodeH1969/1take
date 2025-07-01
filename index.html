@@ -96,33 +96,80 @@
     const message = document.getElementById('message');
     const recordButton = document.getElementById('recordButton');
     const timer = document.getElementById('timer');
-    let mediaRecorder = null;
-    let recordedChunks = [];
-    let stream = null;
+    const video = document.getElementById('video');
+    const defaultGif = document.getElementById('defaultGif');
+    const fullScreenContainer = document.getElementById('fullScreenContainer');
+    const fullScreenVideo = document.getElementById('fullScreenVideo');
+    const closeModal = document.getElementById("closeModal");
+
+    document.querySelectorAll(".thumbnail").forEach(thumb => {
+      thumb.addEventListener("click", () => {
+        const videoSrc = thumb.getAttribute("data-video");
+        fullScreenVideo.src = videoSrc;
+        fullScreenContainer.style.display = 'block';
+        if (fullScreenVideo.requestFullscreen) {
+          fullScreenVideo.requestFullscreen().catch(err => {
+            console.error("Fullscreen failed:", err);
+            fullScreenVideo.style.minWidth = '100vw';
+            fullScreenVideo.style.minHeight = '100vh';
+          });
+        }
+        fullScreenVideo.play();
+      });
+    });
+
+    closeModal.addEventListener("click", (event) => {
+      event.stopPropagation();
+      fullScreenVideo.pause();
+      fullScreenVideo.src = '';
+      fullScreenContainer.style.display = 'none';
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(err => console.error("Exit fullscreen failed:", err));
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        fullScreenContainer.style.display = 'none';
+        fullScreenVideo.pause();
+        fullScreenVideo.src = '';
+      }
+    });
+
+    defaultGif.addEventListener('click', () => {
+      defaultGif.style.visibility = 'hidden';
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
+      video.src = './static/robbiewilliams.mp4';
+      video.classList.add('playing-mp4');
+      video.style.display = 'block';
+      video.muted = false;
+      video.play();
+    });
+
+    video.addEventListener('ended', () => {
+      video.classList.remove('playing-mp4');
+      video.src = '';
+      video.style.display = 'none';
+      defaultGif.style.visibility = 'visible';
+    });
 
     signInAnonymously(auth).then((userCredential) => {
       userId = userCredential.user.uid;
-      console.log("Authenticated user ID:", userId);
-    }).catch((error) => {
-      console.error("Firebase auth failed:", error.code, error.message);
-      message.textContent = "Authentication failed. Please try again.";
     });
 
     recordButton.addEventListener('click', async () => {
-      if (!userId) {
-        message.textContent = "Not authenticated. Please wait and try again.";
-        console.log("Waiting for authentication...");
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        if (!userId) {
-          message.textContent = "Authentication failed. Please refresh and try again.";
-          return;
-        }
-      }
       await startWebcam();
       if (mediaRecorder) {
         await startCountdown();
       }
     });
+
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let stream = null;
 
     async function startWebcam() {
       try {
@@ -215,7 +262,7 @@
     async function showMessage() {
       await new Promise(resolve => setTimeout(resolve, 3000));
       message.textContent = "Good job! Check back tomorrow to see if you're a Hall of Famer!";
-      message.style.visibility = 'visible'; // ✅ ADDED
+      message.style.visibility = 'visible';  // ✅ ADDED
       await new Promise(resolve => setTimeout(resolve, 3000));
       message.style.visibility = 'hidden';
       video.style.display = 'none';
