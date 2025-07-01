@@ -76,7 +76,7 @@
     const fullScreenContainer = document.getElementById('fullScreenContainer');
     const fullScreenVideo = document.getElementById('fullScreenVideo');
     const closeModal = document.getElementById("closeModal");
-    const video = document.getElementById('defaultGif');
+    const video = document.getElementById('video');
     const defaultGif = document.getElementById('defaultGif');
 
     document.querySelectorAll(".thumbnail").forEach(thumb => {
@@ -157,7 +157,7 @@
     const message = document.getElementById('message');
     const recordButton = document.getElementById('recordButton');
     const timer = document.getElementById('timer');
-    let mediaRecorder;
+    let mediaRecorder = null;
     let recordedChunks = [];
     let stream = null;
 
@@ -169,7 +169,9 @@
 
     recordButton.addEventListener('click', async () => {
       await startWebcam();
-      await startCountdown();
+      if (mediaRecorder) {
+        await startCountdown();
+      }
     });
 
     async function startWebcam() {
@@ -183,7 +185,17 @@
         mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
         mediaRecorder.onstop = uploadVideo;
       } catch (error) {
-        alert(`Failed to access camera: ${error.message}`);
+        alert(`Failed to access camera and microphone: ${error.message}`);
+        console.error("Webcam access failed:", error);
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
+        }
+        video.srcObject = null;
+        video.style.display = 'none';
+        defaultGif.style.visibility = 'visible';
+        recordButton.disabled = false;
+        recordButton.textContent = 'Record your 1take';
       }
     }
 
@@ -211,6 +223,10 @@
     }
 
     async function recordVideo() {
+      if (!mediaRecorder) {
+        console.error("MediaRecorder not initialized");
+        return;
+      }
       recordedChunks = [];
       mediaRecorder.start();
       recordButton.disabled = true;
@@ -243,6 +259,7 @@
         stream = null;
       }
       video.srcObject = null;
+      mediaRecorder = null;
 
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
       const storageRef = ref(storage, `videos/${subject}/${userId}/${Date.now()}.webm`);
