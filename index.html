@@ -148,6 +148,7 @@
       appId: "1:996978318172:web:c128d1ceea0c704fd67f99",
       measurementId: "G-TNC7VHBG36"
     };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const storage = getStorage(app);
@@ -165,13 +166,14 @@
       userId = userCredential.user.uid;
       console.log("Authenticated user ID:", userId);
     }).catch((error) => {
-      console.error("Firebase auth failed:", error);
+      console.error("Firebase auth failed:", error.code, error.message);
       message.textContent = "Authentication failed. Please try again.";
     });
 
     recordButton.addEventListener('click', async () => {
       if (!userId) {
         message.textContent = "Not authenticated. Please wait and try again.";
+        console.log("Waiting for authentication...");
         return;
       }
       await startWebcam();
@@ -191,13 +193,15 @@
         mediaRecorder.ondataavailable = (e) => {
           if (e.data.size > 0) {
             recordedChunks.push(e.data);
-            console.log("Data chunk received:", e.data.size);
+            console.log("Data chunk received:", e.data.size, "bytes");
+          } else {
+            console.log("Empty data chunk received");
           }
         };
         mediaRecorder.onstop = uploadVideo;
       } catch (error) {
         alert(`Failed to access camera and microphone: ${error.message}`);
-        console.error("Webcam access failed:", error);
+        console.error("Webcam access failed:", error.code, error.message);
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
           stream = null;
@@ -241,12 +245,14 @@
       }
       recordedChunks = [];
       mediaRecorder.start();
+      console.log("Recording started");
       recordButton.disabled = true;
       recordButton.textContent = 'Recording...';
       video.play();
       startTimer();
       await new Promise(resolve => setTimeout(resolve, 18000));
       mediaRecorder.stop();
+      console.log("Recording stopped");
       timer.style.visibility = 'hidden';
       video.style.visibility = 'hidden';
       message.textContent = "Processing...";
@@ -274,14 +280,14 @@
       mediaRecorder = null;
 
       if (recordedChunks.length === 0 || !recordedChunks.some(chunk => chunk.size > 0)) {
-        console.error("No recorded data to upload");
+        console.error("No valid recorded data");
         message.textContent = "No recording data. Please try again.";
         await showMessage();
         return;
       }
 
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
-      console.log("Blob size:", blob.size);
+      console.log("Blob created, size:", blob.size, "bytes");
       if (blob.size === 0) {
         console.error("Empty blob, upload aborted");
         message.textContent = "Recording is empty. Please try again.";
@@ -290,6 +296,7 @@
       }
 
       const storageRef = ref(storage, `videos/${subject}/${userId}/${Date.now()}.webm`);
+      console.log("Uploading to:", storageRef.fullPath);
       try {
         await uploadBytes(storageRef, blob);
         console.log("Upload successful to:", storageRef.fullPath);
